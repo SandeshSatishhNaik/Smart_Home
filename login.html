@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Smart Home Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/alerts.css">
+</head>
+<body class="login-body">
+    <div class="background-animation">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+    </div>
+    
+    <div class="login-container glassmorphism">
+        <div class="login-header">
+            <h1>Smart Home Login</h1>
+            <p>Welcome to your IoT Dashboard</p>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+        
+        <div class="login-footer">
+            <!-- Account creation option removed -->
+        </div>    </div>
+    
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="js/firebase.js"></script>
+    <script src="js/alerts.js"></script>
+    <script src="js/utils.js"></script>
+    
+    <script>
+        // Hide loading overlay when page is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                setTimeout(() => {
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                    }, 300);
+                }, 500);
+            }
+        });
+    </script>
+    
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // Validate inputs
+                if (!email || !password) {
+                    errorAlert('Please enter both email and password');
+                    return;
+                }
+                
+                // Validate email format
+                if (!isValidEmail(email)) {
+                    errorAlert('Please enter a valid email address');
+                    return;
+                }
+                
+                loginUser(email, password)
+                    .then(() => {
+                        window.location.href = 'index.html';
+                    })
+                    .catch((error) => {
+                        console.error('Login error:', error);
+                        errorAlert('Login failed: ' + error.message);
+                    });
+        });
+    </script>
+</body>
+</html>

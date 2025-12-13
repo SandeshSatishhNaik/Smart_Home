@@ -1,0 +1,24 @@
+{
+  "name": "smart-home-iot-dashboard",
+  "version": "1.0.0",
+  "description": "A complete, production-ready, responsive Smart Home Automation Dashboard built with HTML, CSS, JavaScript, Firebase Web SDK, and MQTT over WebSockets.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "build": "echo 'No build required for static site'"
+  },
+  "keywords": [
+    "iot",
+    "smart-home",
+    "dashboard",
+    "firebase",
+    "mqtt",
+    "hivemq",
+    "esp32"
+  ],
+  "author": "Smart Home IoT Team",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

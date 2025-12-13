@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Smart Home Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/alerts.css">
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>Settings</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Dashboard</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="settings.html" class="active">Settings</a></li>
+                    <li><a href="#" id="logoutBtn">Logout</a></li>
+                </ul>
+            </nav>
+        </header>
+        
+        <main>
+            <section class="settings-section">
+                <h2>User Settings</h2>
+                <div class="settings-grid">
+                    <div class="setting-card glassmorphism">
+                        <h3>Change Password</h3>
+                        <form id="changePasswordForm">
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Update Password</button>
+                        </form>
+                    </div>
+                    
+                    <div class="setting-card glassmorphism">
+                        <h3>Appliance Names</h3>
+                        <form id="applianceNamesForm">
+                            <div class="form-group">
+                                <label for="relay1Name">Light Name</label>
+                                <input type="text" id="relay1Name" value="Light" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="relay2Name">Fan Name</label>
+                                <input type="text" id="relay2Name" value="Fan" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="relay3Name">TV Name</label>
+                                <input type="text" id="relay3Name" value="TV" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="relay4Name">Plug Name</label>
+                                <input type="text" id="relay4Name" value="Plug" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Names</button>
+                        </form>
+                    </div>
+                    
+                    <div class="setting-card glassmorphism">
+                        <h3>Gas Threshold</h3>
+                        <form id="gasThresholdForm">
+                            <div class="form-group">
+                                <label for="gasThreshold">Danger Level</label>
+                                <input type="range" id="gasThreshold" min="1" max="100" value="80">
+                                <div class="range-value" id="gasThresholdValue">80%</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Threshold</button>
+                        </form>
+                    </div>
+                    
+                    <div class="setting-card glassmorphism">
+                        <h3>Notifications</h3>
+                        <form id="notificationsForm">
+                            <div class="form-group">
+                                <label class="switch-label">
+                                    <span>Gas Alerts</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="gasAlerts" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="switch-label">
+                                    <span>Motion Alerts</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="motionAlerts" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="switch-label">
+                                    <span>Relay Status</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="relayAlerts" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="js/firebase.js"></script>
+    <script src="js/alerts.js"></script>
+    <script src="js/utils.js"></script>
+    
+    <script>
+        // Hide loading overlay when page is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                setTimeout(() => {
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                    }, 300);
+                }, 500);
+            }
+            
+            // Load saved settings
+            loadSavedSettings();
+        });
+        
+        // Load saved settings from localStorage
+        function loadSavedSettings() {
+            // Load appliance names
+            const relay1Name = localStorage.getItem('relay1Name');
+            const relay2Name = localStorage.getItem('relay2Name');
+            const relay3Name = localStorage.getItem('relay3Name');
+            const relay4Name = localStorage.getItem('relay4Name');
+            
+            if (relay1Name) document.getElementById('relay1Name').value = relay1Name;
+            if (relay2Name) document.getElementById('relay2Name').value = relay2Name;
+            if (relay3Name) document.getElementById('relay3Name').value = relay3Name;
+            if (relay4Name) document.getElementById('relay4Name').value = relay4Name;
+            
+            // Load gas threshold
+            const gasThreshold = localStorage.getItem('gasThreshold');
+            if (gasThreshold) {
+                document.getElementById('gasThreshold').value = gasThreshold;
+                document.getElementById('gasThresholdValue').textContent = gasThreshold + '%';
+            }
+            
+            // Load notification settings
+            const gasAlerts = localStorage.getItem('gasAlerts');
+            const motionAlerts = localStorage.getItem('motionAlerts');
+            const relayAlerts = localStorage.getItem('relayAlerts');
+            
+            if (gasAlerts !== null) document.getElementById('gasAlerts').checked = gasAlerts === 'true';
+            if (motionAlerts !== null) document.getElementById('motionAlerts').checked = motionAlerts === 'true';
+            if (relayAlerts !== null) document.getElementById('relayAlerts').checked = relayAlerts === 'true';
+        }
+    </script>
+    
+    <script>
+        // Update range value display
+        document.getElementById('gasThreshold').addEventListener('input', function() {
+            document.getElementById('gasThresholdValue').textContent = this.value + '%';
+        });
+        
+        // Form submission handlers
+        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Implement password change logic
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Validate inputs
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                errorAlert('Please fill in all password fields');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                errorAlert('New passwords do not match');
+                return;
+            }
+            
+            if (!isStrongPassword(newPassword)) {
+                errorAlert('Password must be at least 8 characters with uppercase, lowercase, and number');
+                return;
+            }
+            
+            // In a real implementation, you would call a function to update the password
+            // For now, we'll just show a success message
+            successAlert('Password updated successfully!');
+        });
+        
+        document.getElementById('applianceNamesForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Implement appliance name saving logic
+            const relay1Name = document.getElementById('relay1Name').value;
+            const relay2Name = document.getElementById('relay2Name').value;
+            const relay3Name = document.getElementById('relay3Name').value;
+            const relay4Name = document.getElementById('relay4Name').value;
+            
+            // Save to localStorage
+            localStorage.setItem('relay1Name', relay1Name);
+            localStorage.setItem('relay2Name', relay2Name);
+            localStorage.setItem('relay3Name', relay3Name);
+            localStorage.setItem('relay4Name', relay4Name);
+            
+            // Update UI
+            const relay1Label = document.querySelector('#relay1').closest('.toggle-card').querySelector('h3');
+            const relay2Label = document.querySelector('#relay2').closest('.toggle-card').querySelector('h3');
+            const relay3Label = document.querySelector('#relay3').closest('.toggle-card').querySelector('h3');
+            const relay4Label = document.querySelector('#relay4').closest('.toggle-card').querySelector('h3');
+            
+            if (relay1Label) relay1Label.textContent = relay1Name;
+            if (relay2Label) relay2Label.textContent = relay2Name;
+            if (relay3Label) relay3Label.textContent = relay3Name;
+            if (relay4Label) relay4Label.textContent = relay4Name;
+            
+            successAlert('Appliance names saved!');
+        });
+        
+        document.getElementById('gasThresholdForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Implement gas threshold saving logic
+            const gasThreshold = document.getElementById('gasThreshold').value;
+            
+            // Save to localStorage
+            localStorage.setItem('gasThreshold', gasThreshold);
+            
+            successAlert('Gas threshold saved!');
+        });
+        
+        document.getElementById('notificationsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Implement notification settings saving logic
+            const gasAlerts = document.getElementById('gasAlerts').checked;
+            const motionAlerts = document.getElementById('motionAlerts').checked;
+            const relayAlerts = document.getElementById('relayAlerts').checked;
+            
+            // Save to localStorage
+            localStorage.setItem('gasAlerts', gasAlerts);
+            localStorage.setItem('motionAlerts', motionAlerts);
+            localStorage.setItem('relayAlerts', relayAlerts);
+            
+            successAlert('Notification settings saved!');
+        });
+    </script>
+</body>
+</html>

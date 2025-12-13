@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/alerts.css">
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>Smart Home Dashboard</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html" class="active">Dashboard</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="settings.html">Settings</a></li>
+                    <li><a href="#" id="logoutBtn">Logout</a></li>
+                </ul>
+            </nav>
+        </header>
+        
+        <main>
+            <!-- Appliance Control Section -->
+            <section class="appliance-control">
+                <h2>Appliance Control</h2>
+                <div class="toggle-grid">
+                    <div class="toggle-card">
+                        <div class="toggle-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 18V5l12-2v13"></path>
+                                <circle cx="6" cy="18" r="3"></circle>
+                                <circle cx="18" cy="16" r="3"></circle>
+                            </svg>
+                        </div>
+                        <h3>Light</h3>
+                        <label class="switch">
+                            <input type="checkbox" id="relay1">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-card">
+                        <div class="toggle-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                            </svg>
+                        </div>
+                        <h3>Fan</h3>
+                        <label class="switch">
+                            <input type="checkbox" id="relay2">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-card">
+                        <div class="toggle-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+                                <polyline points="17 2 12 7 7 2"></polyline>
+                            </svg>
+                        </div>
+                        <h3>TV</h3>
+                        <label class="switch">
+                            <input type="checkbox" id="relay3">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-card">
+                        <div class="toggle-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                        </div>
+                        <h3>Plug</h3>
+                        <label class="switch">
+                            <input type="checkbox" id="relay4">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Sensor Data Section -->
+            <section class="sensor-data">
+                <h2>Live Sensor Data</h2>
+                <div class="sensor-grid">
+                    <div class="sensor-card" id="gasCard">
+                        <div class="card-header">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2a10 10 0 0 0-7.35 16.76"></path>
+                                    <path d="M12 22s-2-1-2-3.5c0-.73.2-1.47.58-2.11"></path>
+                                    <path d="M12 22s2-1 2-3.5c0-.73-.2-1.47-.58-2.11"></path>
+                                    <path d="M12 12c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"></path>
+                                </svg>
+                            </div>
+                            <h3>Gas Level</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="value" id="gasValue">Waiting for real-time data...</div>
+                            <div class="status-bar">
+                                <div class="status-fill" id="gasFill"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sensor-card" id="motionCard">
+                        <div class="card-header">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1"></path>
+                                    <path d="M19 10a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2z"></path>
+                                    <path d="M4.5 15.5a2.5 2.5 0 0 1 2.5-2.5h1a2.5 2.5 0 0 1 2.5 2.5v1a2.5 2.5 0 0 1-2.5 2.5h-1a2.5 2.5 0 0 1-2.5-2.5z"></path>
+                                    <path d="M11 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"></path>
+                                    <path d="M2 2h2.5a2.5 2.5 0 0 1 0 5H2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H11.5A2.5 2.5 0 0 1 9 0H4a2 2 0 0 0-2 2z"></path>
+                                </svg>
+                            </div>
+                            <h3>Motion Detection</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="value" id="motionValue">Waiting for real-time data...</div>
+                            <div class="last-update" id="motionTime">Last updated: Never</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sensor-card">
+                        <div class="card-header">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 6v6l4 2"></path>
+                                </svg>
+                            </div>
+                            <h3>System Status</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="value" id="connectionStatus">Waiting for connection...</div>
+                            <div class="status-indicator" id="statusIndicator"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Connected Hardware Status -->
+            <section class="hardware-status">
+                <h2>Connected Hardware</h2>
+                <div class="hardware-grid">
+                    <!-- ESP32 Device Status -->
+                    <div class="hardware-card glassmorphism">
+                        <div class="hardware-header">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                                    <line x1="8" y1="6" x2="16" y2="6"></line>
+                                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                                    <line x1="8" y1="18" x2="12" y2="18"></line>
+                                </svg>
+                            </div>
+                            <h3>ESP32 Device</h3>
+                        </div>
+                        <div class="hardware-content">
+                            <div class="status-badge" id="esp32Status">
+                                <span class="status-indicator syncing" id="esp32Indicator"></span>
+                                <span class="status-text">Syncing...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Relay 1 Status -->
+                    <div class="hardware-card glassmorphism">
+                        <div class="hardware-header">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                                </svg>
+                            </div>
+                            <h3 id="relay1HardwareName">Relay 1</h3>
+                        </div>
+                        <div class="hardware-content">
+                            <div class="status-row">
+                                <span class="label">Connection:</span>
+                                <div class="status-badge" id="relay1Connection">
+                                    <span class="status-indicator grey" id="relay1ConnIndicator"></span>
+                                    <span class="status-text">Unknown</span>
+                                </div>
+                            </div>
+                            <div class="status-row">
+                                <span class="label">State:</span>
+                                <div class="status-badge" id="relay1State">
+                                    <span class="status-indicator grey" id="relay1StateIndicator"></span>
+                                    <span class="status-text">Unknown</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Relay 2 Status -->
+                    <div class="hardware-card glassmorphism">
+                        <div class="hardware-header">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                                </svg>
+                            </div>
+                            <h3 id="relay2HardwareName">Relay 2</h3>
+                        </div>
+                        <div class="hardware-content">
+                            <div class="status-row">
+                                <span class="label">Connection:</span>
+                                <div class="status-badge" id="relay2Connection">
+                                    <span class="status-indicator grey" id="relay2ConnIndicator"></span>
+                                    <span class="status-text">Unknown</span>
+                                </div>
+                            </div>
+                            <div class="status-row">
+                                <span class="label">State:</span>
+                                <div class="status-badge" id="relay2State">
+                                    <span class="status-indicator grey" id="relay2StateIndicator"></span>
+                                    <span class="status-text">Unknown</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Relay 3 Status -->
+                    <div class="hardware-card glassmorphism">
+                        <div class="hardware-header">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                                </svg>
+                            </div>
+                            <h3 id="relay3HardwareName">Relay 3</h3>
+                        </div>
+                        <div class="hardware-content">
+                            <div class="status-row">
+                                <span class="label">Connection:</span>
+                                <div class="status-badge" id="relay3Connection">
+                                    <span class="status-indicator grey" id="relay3ConnIndicator"></span>
+                                    <span class="status-text">Unknown</span>
+                                </div>
+                            </div>
+                            <div class="status-row">
+                                <span class="label">State:</span>
+                                <div class="status-badge" id="relay3State">
+                                    <span class="status-indicator grey" id="relay3StateIndicator"></span>
+                                    <span class="status-text">Unknown</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Relay 4 Status -->
+                    <div class="hardware-card glassmorphism">
+                        <div class="hardware-header">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                                </svg>
+                            </div>
+                            <h3 id="relay4HardwareName">Relay 4</h3>
+                        </div>
+                        <div class="hardware-content">
+                            <div class="status-row">
+                                <span class="label">Connection:</span>
+                                <div class="status-badge" id="relay4Connection">
+                                    <span class="status-indicator grey" id="relay4ConnIndicator"></span>
+                                    <span class="status-text">Unknown</span>
+                                </div>
+                            </div>
+                            <div class="status-row">
+                                <span class="label">State:</span>
+                                <div class="status-badge" id="relay4State">
+                                    <span class="status-indicator grey" id="relay4StateIndicator"></span>
+                                    <span class="status-text">Unknown</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gas Sensor Status -->
+                    <div class="hardware-card glassmorphism">
+                        <div class="hardware-header">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2a10 10 0 0 0-7.35 16.76"></path>
+                                    <path d="M12 22s-2-1-2-3.5c0-.73.2-1.47.58-2.11"></path>
+                                    <path d="M12 22s2-1 2-3.5c0-.73-.2-1.47-.58-2.11"></path>
+                                    <path d="M12 12c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"></path>
+                                </svg>
+                            </div>
+                            <h3>Gas Sensor</h3>
+                        </div>
+                        <div class="hardware-content">
+                            <div class="status-badge" id="gasSensorStatus">
+                                <span class="status-indicator grey" id="gasSensorIndicator"></span>
+                                <span class="status-text">No Data</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Motion Sensor Status -->
+                    <div class="hardware-card glassmorphism">
+                        <div class="hardware-header">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1"></path>
+                                    <path d="M19 10a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2z"></path>
+                                    <path d="M4.5 15.5a2.5 2.5 0 0 1 2.5-2.5h1a2.5 2.5 0 0 1 2.5 2.5v1a2.5 2.5 0 0 1-2.5 2.5h-1a2.5 2.5 0 0 1-2.5-2.5z"></path>
+                                    <path d="M11 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"></path>
+                                    <path d="M2 2h2.5a2.5 2.5 0 0 1 0 5H2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H11.5A2.5 2.5 0 0 1 9 0H4a2 2 0 0 0-2 2z"></path>
+                                </svg>
+                            </div>
+                            <h3>Motion Sensor</h3>
+                        </div>
+                        <div class="hardware-content">
+                            <div class="status-badge" id="motionSensorStatus">
+                                <span class="status-indicator grey" id="motionSensorIndicator"></span>
+                                <span class="status-text">No Data</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>        </main>
+    </div>
+    
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
+    <!-- MQTT Client -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="js/firebase.js"></script>
+    <script src="js/mqttClient.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/alerts.js"></script>
+    <script src="js/utils.js"></script>
+</body>
+</html>
