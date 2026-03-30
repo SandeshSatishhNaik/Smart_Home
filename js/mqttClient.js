@@ -1,8 +1,10 @@
 // MQTT Client Configuration
-const MQTT_HOST = process.env.VITE_MQTT_HOST || "4937ec2b1a4d43d188b384d4972d66db.s1.eu.hivemq.cloud";
-const MQTT_PORT = process.env.VITE_MQTT_PORT || 8884;
-const MQTT_USERNAME = process.env.VITE_MQTT_USERNAME || "Demon_sandy";
-const MQTT_PASSWORD = process.env.VITE_MQTT_PASSWORD || "Demon_sandy9";// MQTT Topics
+const MQTT_HOST = window.CONFIG ? window.CONFIG.MQTT.HOST : "4937ec2b1a4d43d188b384d4972d66db.s1.eu.hivemq.cloud";
+const MQTT_PORT = window.CONFIG ? window.CONFIG.MQTT.PORT : 8884;
+const MQTT_USERNAME = window.CONFIG ? window.CONFIG.MQTT.USERNAME : "Demon_sandy";
+const MQTT_PASSWORD = window.CONFIG ? window.CONFIG.MQTT.PASSWORD : "Demon_sandy9";
+
+// MQTT Topics
 const TOPICS = {
     RELAY_SET: [
         'home/relay1/set',
