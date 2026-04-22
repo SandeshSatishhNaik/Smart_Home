@@ -8,57 +8,6 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/alerts.css">
-    <link rel="stylesheet" href="css/settings.css">
-    <style>
-        /* Existing internal styles kept for backward compatibility or overridden by settings.css */
-        .settings-page-wrapper {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: var(--spacing-lg) var(--spacing-md);
-        }
-
-        .settings-layout {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: var(--spacing-lg);
-        }
-
-        @media (min-width: 1024px) {
-            .settings-layout {
-                grid-template-columns: 280px 1fr;
-                gap: var(--spacing-xl);
-            }
-        }
-
-        /* Override sidebar for vertical layout */
-        @media (min-width: 1024px) {
-            .settings-sidebar {
-                flex-direction: column;
-                position: sticky;
-                top: 100px;
-                height: fit-content;
-            }
-        }
-        
-        /* Auto Save Toast */
-        .auto-save-toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: linear-gradient(135deg, hsl(var(--accent-emerald)), hsl(160 84% 35%));
-            color: white;
-            padding: 12px 20px;
-            border-radius: var(--radius-md);
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            z-index: 9999;
-            animation: slideInUp 0.3s ease-out;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-        }
-    </style>
 </head>
 <body>
     <div class="loading-overlay" id="loadingOverlay">
@@ -67,13 +16,7 @@
     
     <div class="container">
         <header>
-            <h1>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" stroke-width="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-                SmartHome
-            </h1>
+            <h1>Settings</h1>
             <nav>
                 <ul>
                     <li><a href="index.html">Dashboard</a></li>
@@ -81,367 +24,114 @@
                     <li><a href="settings.html" class="active">Settings</a></li>
                     <li><a href="#" id="logoutBtn">Logout</a></li>
                 </ul>
-                <div class="header-profile">
-                    <span id="headerProfileName">Home Admin</span>
-                    <div class="header-avatar">
-                        <img id="headerProfileAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User">
-                    </div>
-                </div>
             </nav>
         </header>
         
         <main>
-            <div class="settings-page-wrapper">
-                <div class="settings-layout">
-                    <!-- Sidebar Navigation -->
-                    <aside class="settings-sidebar">
-                        <div class="sidebar-group">
-                            <p class="sidebar-label" style="font-size: 0.7rem; color: var(--muted-foreground); padding: 0 16px 8px; text-transform: uppercase; letter-spacing: 0.1em;">Overview</p>
-                            <a href="#general" class="settings-sidebar-item active" data-section="general">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                                <span>General</span>
-                            </a>
-                        </div>
-                        <div class="sidebar-group" style="margin-top: 20px;">
-                            <p class="sidebar-label" style="font-size: 0.7rem; color: var(--muted-foreground); padding: 0 16px 8px; text-transform: uppercase; letter-spacing: 0.1em;">Devices & Sensors</p>
-                            <a href="#devices" class="settings-sidebar-item" data-section="devices">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><path d="M12 7v5l3 3"></path></svg>
-                                <span>Peripherals</span>
-                            </a>
-                            <a href="#gas" class="settings-sidebar-item" data-section="gas">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v10"></path><path d="M18.4 4.6a9 9 0 1 1-12.8 0"></path></svg>
-                                <span>Environment</span>
-                            </a>
-                        </div>
-                        <div class="sidebar-group" style="margin-top: 20px;">
-                            <p class="sidebar-label" style="font-size: 0.7rem; color: var(--muted-foreground); padding: 0 16px 8px; text-transform: uppercase; letter-spacing: 0.1em;">System</p>
-                            <a href="#security" class="settings-sidebar-item" data-section="security">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                <span>Security</span>
-                            </a>
-                            <a href="#voice" class="settings-sidebar-item" data-section="voice">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                                <span>Voice</span>
-                            </a>
-                        </div>
-                    </aside>
+            <section class="settings-section">
+                <h2>User Settings</h2>
+                <div class="settings-grid">
+                    <div class="setting-card glassmorphism">
+                        <h3>Change Password</h3>
+                        <form id="changePasswordForm">
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Update Password</button>
+                        </form>
+                    </div>
                     
-                    <!-- Main Content -->
-                    <div class="settings-content">
-                        <!-- General Section -->
-                        <section id="general" class="settings-section active">
-                            <div class="settings-grid">
-                                <!-- Profile Card -->
-                                <div class="settings-card profile-card glassmorphism shine-sweep stagger-1 animate-entrance">
-                                    <div class="avatar-wrapper">
-                                        <img id="mainProfileImage" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile">
-                                    </div>
-                                    <div class="profile-info">
-                                        <h2 id="profileNameDisplay">Home Admin</h2>
-                                        <p id="profileEmailDisplay">admin@smarthome.local</p>
-                                        <button class="btn btn-secondary" id="editProfileBtn" style="margin-top: 15px; width: 100%;">Edit Profile</button>
-                                    </div>
-                                </div>
-
-                                <!-- System Status Card -->
-                                <div class="settings-card glassmorphism stagger-2 animate-entrance span-2">
-                                    <h3>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-                                        System Overview
-                                    </h3>
-                                    <p>Live health and connectivity status of your home controller.</p>
-                                    <div class="stat-group">
-                                        <div class="stat-item">
-                                            <span class="stat-label">Connection</span>
-                                            <span class="stat-value online">MQTT Online</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <span class="stat-label">Uptime</span>
-                                            <span class="stat-value">12d 4h 22m</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <span class="stat-label">WiFi Strength</span>
-                                            <span class="stat-value">Excellent (-45dBm)</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <span class="stat-label">Firmware</span>
-                                            <span class="stat-value">v2.4.1 (Latest)</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Appearance Card -->
-                                <div class="settings-card glassmorphism stagger-3 animate-entrance span-full">
-                                    <h3>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-                                        Interface & Appearance
-                                    </h3>
-                                    <p>Customize the look and feel of your dashboard.</p>
-                                    <div class="form-row-compact">
-                                        <div class="form-group">
-                                            <label>Accent Color</label>
-                                            <div class="accent-picker">
-                                                <div class="accent-color active" style="background: #3B82F6;" data-color="217 91% 60%"></div>
-                                                <div class="accent-color" style="background: #10B981;" data-color="160 84% 39%"></div>
-                                                <div class="accent-color" style="background: #F59E0B;" data-color="38 92% 50%"></div>
-                                                <div class="accent-color" style="background: #EF4444;" data-color="0 84% 60%"></div>
-                                                <div class="accent-color" style="background: #8B5CF6;" data-color="262 83% 58%"></div>
-                                                <div class="accent-color" style="background: #EC4899;" data-color="330 81% 60%"></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group" style="max-width: 200px;">
-                                            <label for="themeMode">Theme Mode</label>
-                                            <select id="themeMode">
-                                                <option value="dark">Cinematic Dark</option>
-                                                <option value="light">Soft Light</option>
-                                                <option value="auto">System Default</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="setting-card glassmorphism">
+                        <h3>Appliance Names</h3>
+                        <form id="applianceNamesForm">
+                            <div class="form-group">
+                                <label for="relay1Name">Light Name</label>
+                                <input type="text" id="relay1Name" value="Light" required>
                             </div>
-                        </section>
-
-                        <!-- Devices Section -->
-                        <section id="devices" class="settings-section">
-                            <h2 class="section-title">Devices</h2>
-                            <p class="section-description">Customize your connected peripherals.</p>
-                            <div class="settings-card glassmorphism">
-                                <h3>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>
-                                    Peripheral Identifiers
-                                </h3>
-                                <p>Rename your devices for easier voice control and identification.</p>
-                                <form id="applianceNamesForm">
-                                    <div class="input-grid">
-                                        <div class="form-group">
-                                            <label for="relay1Name">Relay 1</label>
-                                            <input type="text" id="relay1Name" value="Light" placeholder="e.g. Living Room Lamp">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="relay2Name">Relay 2</label>
-                                            <input type="text" id="relay2Name" value="Fan" placeholder="e.g. Ceiling Fan">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="relay3Name">Relay 3</label>
-                                            <input type="text" id="relay3Name" value="TV" placeholder="e.g. Smart TV">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="relay4Name">Relay 4</label>
-                                            <input type="text" id="relay4Name" value="Plug" placeholder="e.g. Coffee Machine">
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Update Device Map</button>
-                                </form>
+                            
+                            <div class="form-group">
+                                <label for="relay2Name">Fan Name</label>
+                                <input type="text" id="relay2Name" value="Fan" required>
                             </div>
-                        </section>
-
-                        <!-- Gas Section -->
-                        <section id="gas" class="settings-section">
-                            <h2 class="section-title">Environment</h2>
-                            <p class="section-description">Safety thresholds and sensor calibration.</p>
-                            <div class="settings-grid">
-                                <div class="settings-card glassmorphism span-2">
-                                    <h3>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path></svg>
-                                        Gas Detection Sensitivity
-                                    </h3>
-                                    <form id="gasThresholdForm">
-                                        <div class="slider-container">
-                                            <div class="slider-header">
-                                                <span class="slider-label">Warning Threshold</span>
-                                                <span class="slider-value" id="gasThresholdValue">80%</span>
-                                            </div>
-                                            <input type="range" id="gasThreshold" min="1" max="100" value="80">
-                                            <div class="slider-labels">
-                                                <span>Low Sensitivity</span>
-                                                <span>Normal</span>
-                                                <span>High Sensitivity</span>
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary">Apply Changes</button>
-                                    </form>
-                                </div>
-                                <div class="settings-card glassmorphism">
-                                    <h3>Notifications</h3>
-                                    <div class="toggle-group">
-                                        <div class="toggle-row">
-                                            <div class="toggle-info">
-                                                <h4>Gas Alerts</h4>
-                                                <p>Critical warnings</p>
-                                            </div>
-                                            <label class="switch">
-                                                <input type="checkbox" id="gasAlerts" checked>
-                                                <span class="slider"></span>
-                                            </label>
-                                        </div>
-                                        <div class="toggle-row">
-                                            <div class="toggle-info">
-                                                <h4>Auto-Vent</h4>
-                                                <p>Turn on fan on leak</p>
-                                            </div>
-                                            <label class="switch">
-                                                <input type="checkbox" id="autoVent">
-                                                <span class="slider"></span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
+                            
+                            <div class="form-group">
+                                <label for="relay3Name">TV Name</label>
+                                <input type="text" id="relay3Name" value="TV" required>
                             </div>
-                        </section>
-
-                        <!-- Security Section -->
-                        <section id="security" class="settings-section">
-                            <h2 class="section-title">Security</h2>
-                            <p class="section-description">Account protection and access control.</p>
-                            <div class="settings-grid">
-                                <div class="settings-card glassmorphism span-2">
-                                    <h3>Update Password</h3>
-                                    <form id="changePasswordForm">
-                                        <div class="form-group">
-                                            <label>Current Password</label>
-                                            <input type="password" id="currentPassword" placeholder="••••••••">
-                                        </div>
-                                        <div class="input-grid">
-                                            <div class="form-group">
-                                                <label>New Password</label>
-                                                <input type="password" id="newPassword" placeholder="Min 8 characters">
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Confirm Password</label>
-                                                <input type="password" id="confirmPassword" placeholder="Repeat new password">
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Save Credentials</button>
-                                    </form>
-                                </div>
-                                <div class="settings-card glassmorphism">
-                                    <h3>Advanced</h3>
-                                    <div class="toggle-group">
-                                        <div class="toggle-row">
-                                            <div class="toggle-info">
-                                                <h4>Two-Factor</h4>
-                                                <p>Secure login</p>
-                                            </div>
-                                            <label class="switch">
-                                                <input type="checkbox" id="twoFactor">
-                                                <span class="slider"></span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-secondary" style="margin-top: 20px; width: 100%; border-color: var(--danger); color: var(--danger);">Reset API Keys</button>
-                                </div>
+                            
+                            <div class="form-group">
+                                <label for="relay4Name">Plug Name</label>
+                                <input type="text" id="relay4Name" value="Plug" required>
                             </div>
-                        </section>
-
-                        <!-- Voice Section -->
-                        <section id="voice" class="settings-section">
-                            <h2 class="section-title">Voice Control</h2>
-                            <p class="section-description">Configure the AI assistant behavior.</p>
-                            <div class="settings-card glassmorphism span-full">
-                                <div class="toggle-group" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
-                                    <div class="toggle-row">
-                                        <div class="toggle-info">
-                                            <h4>Enable Assistant</h4>
-                                            <p>Listen for commands</p>
-                                        </div>
-                                        <label class="switch">
-                                            <input type="checkbox" id="voiceAssistantEnabled" checked>
-                                            <span class="slider"></span>
-                                        </label>
-                                    </div>
-                                    <div class="toggle-row">
-                                        <div class="toggle-info">
-                                            <h4>Spoken Feedback</h4>
-                                            <p>Voice confirmations</p>
-                                        </div>
-                                        <label class="switch">
-                                            <input type="checkbox" id="voiceReplyToggle" checked>
-                                            <span class="slider"></span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="input-grid" style="margin-top: 20px;">
-                                    <div class="form-group">
-                                        <label>Activation Mode</label>
-                                        <select id="voiceModeSelect">
-                                            <option value="tap">Tap to talk</option>
-                                            <option value="hold">Press and hold</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Assistant Voice</label>
-                                        <select id="voiceBrowserSelect">
-                                            <option value="">Default</option>
-                                        </select>
-                                    </div>
-                                </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Names</button>
+                        </form>
+                    </div>
+                    
+                    <div class="setting-card glassmorphism">
+                        <h3>Gas Threshold</h3>
+                        <form id="gasThresholdForm">
+                            <div class="form-group">
+                                <label for="gasThreshold">Danger Level</label>
+                                <input type="range" id="gasThreshold" min="1" max="100" value="80">
+                                <div class="range-value" id="gasThresholdValue">80%</div>
                             </div>
-                        </section>
+                            
+                            <button type="submit" class="btn btn-primary">Save Threshold</button>
+                        </form>
+                    </div>
+                    
+                    <div class="setting-card glassmorphism">
+                        <h3>Notifications</h3>
+                        <form id="notificationsForm">
+                            <div class="form-group">
+                                <label class="switch-label">
+                                    <span>Gas Alerts</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="gasAlerts" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="switch-label">
+                                    <span>Motion Alerts</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="motionAlerts" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="switch-label">
+                                    <span>Relay Status</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="relayAlerts" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </form>
                     </div>
                 </div>
-            </div>
+            </section>
         </main>
-    </div>
-    
-    <!-- Edit Profile Modal -->
-    <div class="modal-overlay" id="profileModal">
-        <div class="modal-content glassmorphism">
-            <div class="modal-header">
-                <h3>Edit Profile</h3>
-                <button class="modal-close" id="closeProfileModal">&times;</button>
-            </div>
-            <form id="editProfileForm">
-                <div class="form-group">
-                    <label for="editName">Display Name</label>
-                    <input type="text" id="editName" placeholder="Enter your name">
-                </div>
-                <div class="form-group">
-                    <label for="editEmail">Email Address</label>
-                    <input type="email" id="editEmail" placeholder="Enter your email">
-                </div>
-                <div class="form-group">
-                    <label>Profile Icon</label>
-                    
-                    <!-- Presets Selection -->
-                    <div class="avatar-presets" style="display: flex; gap: 10px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <div class="preset-item" data-path="profile/admin.png" style="width: 50px; height: 50px; cursor: pointer; border-radius: 50%; overflow: hidden; border: 2px solid transparent; transition: all 0.2s;">
-                            <img src="profile/admin.png" alt="Admin" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <div class="preset-item" data-path="profile/tech.png" style="width: 50px; height: 50px; cursor: pointer; border-radius: 50%; overflow: hidden; border: 2px solid transparent; transition: all 0.2s;">
-                            <img src="profile/tech.png" alt="Tech" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <div class="preset-item" data-path="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" style="width: 50px; height: 50px; cursor: pointer; border-radius: 50%; overflow: hidden; border: 2px solid transparent; transition: all 0.2s;">
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Default" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                    </div>
-
-                    <div class="avatar-upload-wrapper" style="display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: var(--radius-md); border: 1px dashed var(--glass-border);">
-                        <div class="avatar-preview-small" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; border: 2px solid var(--primary);">
-                            <img id="editAvatarPreview" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <div style="flex: 1;">
-                            <label for="avatarUpload" class="btn btn-secondary" style="width: 100%; padding: 8px; font-size: 0.8rem; cursor: pointer;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                                Upload Image
-                            </label>
-                            <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Or use Avatar Seed (AI Generated)</label>
-                    <div class="avatar-options">
-                        <input type="text" id="editAvatarSeed" placeholder="e.g. Felix, Max, etc.">
-                        <small class="form-text">Type a name to generate a unique character</small>
-                    </div>
-                </div>
-                <div class="modal-footer" style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="button" class="btn btn-secondary" id="cancelProfileEdit" style="flex: 1;">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save Changes</button>
-                </div>
-            </form>
-        </div>
     </div>
     
     <!-- Alert Container -->
@@ -453,364 +143,146 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
     <!-- Custom Scripts -->
-    <script src="js/particles.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/firebase.js"></script>
     <script src="js/alerts.js"></script>
     <script src="js/utils.js"></script>
-    <script src="js/voice-assistant.js"></script>
     
     <script>
+        // Hide loading overlay when page is loaded
         document.addEventListener('DOMContentLoaded', function() {
             const loadingOverlay = document.getElementById('loadingOverlay');
             if (loadingOverlay) {
                 setTimeout(() => {
                     loadingOverlay.style.opacity = '0';
-                    setTimeout(() => loadingOverlay.style.display = 'none', 300);
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                    }, 300);
                 }, 500);
             }
+            
+            // Load saved settings
             loadSavedSettings();
-            populateVoiceOptions();
-            setupAutoSaveToggles();
-            setupSidebarNav();
-            setupAccentPicker();
-            setupProfileEdit();
         });
-
-        function setupProfileEdit() {
-            const modal = document.getElementById('profileModal');
-            const openBtn = document.getElementById('editProfileBtn');
-            const closeBtn = document.getElementById('closeProfileModal');
-            const cancelBtn = document.getElementById('cancelProfileEdit');
-            const form = document.getElementById('editProfileForm');
-            const uploadInput = document.getElementById('avatarUpload');
-            const previewImg = document.getElementById('editAvatarPreview');
-            const seedInput = document.getElementById('editAvatarSeed');
-
-            let tempAvatarData = null;
-
-            // Load initial state
-            if (window.syncProfileUI) window.syncProfileUI();
-
-            // Preset selection logic
-            const presetItems = document.querySelectorAll('.preset-item');
-            presetItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    const path = this.getAttribute('data-path');
-                    tempAvatarData = path; // Using tempAvatarData to store the path if it's a preset
-                    previewImg.src = path;
-                    
-                    presetItems.forEach(i => i.style.borderColor = 'transparent');
-                    this.style.borderColor = 'var(--primary)';
-                    
-                    seedInput.value = ''; // Clear seed if preset is chosen
-                });
-            });
-
-            openBtn.addEventListener('click', () => {
-                const currentName = localStorage.getItem('profileName') || 'Home Admin';
-                const currentEmail = localStorage.getItem('profileEmail') || 'admin@smarthome.local';
-                const currentSeed = localStorage.getItem('profileAvatarSeed');
-                const currentCustom = localStorage.getItem('profileCustomImage');
-
-                document.getElementById('editName').value = currentName;
-                document.getElementById('editEmail').value = currentEmail;
-                seedInput.value = (currentCustom || currentSeed === null) ? '' : (currentSeed || 'Felix');
-                
-                previewImg.src = document.getElementById('mainProfileImage').src;
-                tempAvatarData = null;
-
-                // Highlight active preset if applicable
-                presetItems.forEach(item => {
-                    const path = item.getAttribute('data-path');
-                    if (path === previewImg.src || (previewImg.src.includes(path) && path.length > 5)) {
-                        item.style.borderColor = 'var(--primary)';
-                    } else {
-                        item.style.borderColor = 'transparent';
-                    }
-                });
-
-                modal.classList.add('active');
-            });
-
-            uploadInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        const img = new Image();
-                        img.onload = function() {
-                            const canvas = document.createElement('canvas');
-                            const MAX_SIZE = 200;
-                            let width = img.width;
-                            let height = img.height;
-
-                            if (width > height) {
-                                if (width > MAX_SIZE) {
-                                    height *= MAX_SIZE / width;
-                                    width = MAX_SIZE;
-                                }
-                            } else {
-                                if (height > MAX_SIZE) {
-                                    width *= MAX_SIZE / height;
-                                    height = MAX_SIZE;
-                                }
-                            }
-
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
-
-                            tempAvatarData = canvas.toDataURL('image/jpeg', 0.7);
-                            previewImg.src = tempAvatarData;
-                            seedInput.value = ''; // Clear seed to indicate custom image is used
-                        };
-                        img.src = event.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            const closeModal = () => modal.classList.remove('active');
-            closeBtn.addEventListener('click', closeModal);
-            cancelBtn.addEventListener('click', closeModal);
-            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const newName = document.getElementById('editName').value;
-                const newEmail = document.getElementById('editEmail').value;
-                const newSeed = seedInput.value;
-
-                try {
-                    localStorage.setItem('profileName', newName);
-                    localStorage.setItem('profileEmail', newEmail);
-                    
-                    if (tempAvatarData) {
-                        // Priority 1: New custom image upload
-                        localStorage.setItem('profileCustomImage', tempAvatarData);
-                        localStorage.removeItem('profileAvatarSeed');
-                    } else if (newSeed) {
-                        // Priority 2: New seed entered (and no new image)
-                        localStorage.setItem('profileAvatarSeed', newSeed);
-                        localStorage.removeItem('profileCustomImage');
-                    }
-                    // Priority 3: No new image or seed, keep current avatar state
-
-                    // Sync UI across all components
-                    if (window.syncProfileUI) window.syncProfileUI();
-                    
-                    closeModal();
-                    showToast();
-                    if (window.successAlert) successAlert('Profile updated successfully!');
-                } catch (err) {
-                    console.error('Storage error:', err);
-                    if (window.errorAlert) errorAlert('Storage full or error saving profile');
-                }
-            });
-        }
-
-        function setupSidebarNav() {
-            const items = document.querySelectorAll('.settings-sidebar-item');
-            const sections = document.querySelectorAll('.settings-section');
-            
-            items.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const id = this.getAttribute('data-section');
-                    
-                    // Update active state
-                    items.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Show/Hide sections
-                    sections.forEach(s => {
-                        s.classList.remove('active');
-                        if (s.id === id) {
-                            s.classList.add('active');
-                        }
-                    });
-
-                    // Scroll to top of content area on mobile
-                    if (window.innerWidth < 1024) {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                });
-            });
-        }
-
-        function setupAccentPicker() {
-            const colors = document.querySelectorAll('.accent-color');
-            const savedAccent = localStorage.getItem('accentColor');
-            
-            if (savedAccent) {
-                document.documentElement.style.setProperty('--primary', savedAccent);
-                colors.forEach(c => {
-                    if (c.getAttribute('data-color') === savedAccent) {
-                        colors.forEach(i => i.classList.remove('active'));
-                        c.classList.add('active');
-                    }
-                });
-            }
-
-            colors.forEach(color => {
-                color.addEventListener('click', function() {
-                    const colorVal = this.getAttribute('data-color');
-                    document.documentElement.style.setProperty('--primary', colorVal);
-                    localStorage.setItem('accentColor', colorVal);
-                    
-                    colors.forEach(c => c.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    showToast();
-                });
-            });
-        }
-
+        
+        // Load saved settings from localStorage
         function loadSavedSettings() {
-            const names = ['relay1Name', 'relay2Name', 'relay3Name', 'relay4Name'];
-            names.forEach((name, i) => {
-                const val = localStorage.getItem(name);
-                if (val) {
-                    const el = document.getElementById(name);
-                    if (el) el.value = val;
-                }
-            });
+            // Load appliance names
+            const relay1Name = localStorage.getItem('relay1Name');
+            const relay2Name = localStorage.getItem('relay2Name');
+            const relay3Name = localStorage.getItem('relay3Name');
+            const relay4Name = localStorage.getItem('relay4Name');
             
-            const threshold = localStorage.getItem('gasThreshold') || '80';
-            const gt = document.getElementById('gasThreshold');
-            if (gt) {
-                gt.value = threshold;
-                document.getElementById('gasThresholdValue').textContent = threshold + '%';
+            if (relay1Name) document.getElementById('relay1Name').value = relay1Name;
+            if (relay2Name) document.getElementById('relay2Name').value = relay2Name;
+            if (relay3Name) document.getElementById('relay3Name').value = relay3Name;
+            if (relay4Name) document.getElementById('relay4Name').value = relay4Name;
+            
+            // Load gas threshold
+            const gasThreshold = localStorage.getItem('gasThreshold');
+            if (gasThreshold) {
+                document.getElementById('gasThreshold').value = gasThreshold;
+                document.getElementById('gasThresholdValue').textContent = gasThreshold + '%';
             }
             
-            ['gasAlerts', 'motionAlerts', 'relayAlerts', 'autoVent', 'twoFactor'].forEach(id => {
-                const val = localStorage.getItem(id);
-                const el = document.getElementById(id);
-                if (el) el.checked = val === 'true';
-            });
+            // Load notification settings
+            const gasAlerts = localStorage.getItem('gasAlerts');
+            const motionAlerts = localStorage.getItem('motionAlerts');
+            const relayAlerts = localStorage.getItem('relayAlerts');
             
-            ['voiceAssistantEnabled', 'voiceReplyToggle'].forEach(id => {
-                const val = localStorage.getItem(id);
-                const el = document.getElementById(id);
-                if (el) el.checked = val !== 'false';
-            });
-            
-            const mode = localStorage.getItem('voiceMode');
-            if (mode) {
-                const ms = document.getElementById('voiceModeSelect');
-                if (ms) ms.value = mode;
-            }
-            
-            const voice = localStorage.getItem('voiceBrowser');
-            if (voice) {
-                const vs = document.getElementById('voiceBrowserSelect');
-                if (vs) vs.value = voice;
-            }
+            if (gasAlerts !== null) document.getElementById('gasAlerts').checked = gasAlerts === 'true';
+            if (motionAlerts !== null) document.getElementById('motionAlerts').checked = motionAlerts === 'true';
+            if (relayAlerts !== null) document.getElementById('relayAlerts').checked = relayAlerts === 'true';
         }
-
-        function setupAutoSaveToggles() {
-            const toggles = ['gasAlerts', 'motionAlerts', 'relayAlerts', 'voiceAssistantEnabled', 'voiceReplyToggle', 'autoVent', 'twoFactor'];
-            toggles.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('change', function() {
-                        localStorage.setItem(id, this.checked);
-                        showToast();
-                    });
-                }
-            });
-        }
-
-        function showToast() {
-            const existing = document.querySelector('.auto-save-toast');
-            if (existing) existing.remove();
-            
-            const toast = document.createElement('div');
-            toast.className = 'auto-save-toast';
-            toast.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Preferences Saved!';
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'slideInUp 0.3s ease-out reverse';
-                setTimeout(() => toast.remove(), 300);
-            }, 2000);
-        }
-
-        function populateVoiceOptions() {
-            const select = document.getElementById('voiceBrowserSelect');
-            if ('speechSynthesis' in window) {
-                const loadVoices = () => {
-                    const voices = speechSynthesis.getVoices();
-                    if (voices.length > 0) {
-                        select.innerHTML = '<option value="">Default</option>';
-                        voices.forEach(voice => {
-                            const opt = document.createElement('option');
-                            opt.value = voice.name;
-                            opt.textContent = voice.name;
-                            select.appendChild(opt);
-                        });
-                    }
-                };
-                loadVoices();
-                if (speechSynthesis.onvoiceschanged !== undefined) {
-                    speechSynthesis.onvoiceschanged = loadVoices;
-                }
-            }
-        }
-
-        const gasThres = document.getElementById('gasThreshold');
-        if (gasThres) {
-            gasThres.addEventListener('input', function() {
-                document.getElementById('gasThresholdValue').textContent = this.value + '%';
-            });
-        }
-
-        document.getElementById('voiceModeSelect').addEventListener('change', function() {
-            localStorage.setItem('voiceMode', this.value);
-            showToast();
+    </script>
+    
+    <script>
+        // Update range value display
+        document.getElementById('gasThreshold').addEventListener('input', function() {
+            document.getElementById('gasThresholdValue').textContent = this.value + '%';
         });
-
-        document.getElementById('voiceBrowserSelect').addEventListener('change', function() {
-            localStorage.setItem('voiceBrowser', this.value);
-            showToast();
-        });
-
+        
+        // Form submission handlers
         document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const p1 = document.getElementById('newPassword').value;
-            const p2 = document.getElementById('confirmPassword').value;
+            // Implement password change logic
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
             
-            if (p1 !== p2) { 
-                if (window.errorAlert) errorAlert('Passwords do not match'); 
-                else alert('Passwords do not match');
-                return; 
-            }
-            if (p1.length < 8) { 
-                if (window.errorAlert) errorAlert('Minimum 8 characters'); 
-                else alert('Minimum 8 characters');
-                return; 
+            // Validate inputs
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                errorAlert('Please fill in all password fields');
+                return;
             }
             
-            if (window.successAlert) successAlert('Password updated!');
-            else alert('Password updated!');
-            this.reset();
+            if (newPassword !== confirmPassword) {
+                errorAlert('New passwords do not match');
+                return;
+            }
+            
+            if (!isStrongPassword(newPassword)) {
+                errorAlert('Password must be at least 8 characters with uppercase, lowercase, and number');
+                return;
+            }
+            
+            // In a real implementation, you would call a function to update the password
+            // For now, we'll just show a success message
+            successAlert('Password updated successfully!');
         });
-
+        
         document.getElementById('applianceNamesForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            ['relay1Name', 'relay2Name', 'relay3Name', 'relay4Name'].forEach(id => {
-                localStorage.setItem(id, document.getElementById(id).value);
-            });
-            if (window.successAlert) successAlert('Device map updated!');
-            else alert('Device map updated!');
+            // Implement appliance name saving logic
+            const relay1Name = document.getElementById('relay1Name').value;
+            const relay2Name = document.getElementById('relay2Name').value;
+            const relay3Name = document.getElementById('relay3Name').value;
+            const relay4Name = document.getElementById('relay4Name').value;
+            
+            // Save to localStorage
+            localStorage.setItem('relay1Name', relay1Name);
+            localStorage.setItem('relay2Name', relay2Name);
+            localStorage.setItem('relay3Name', relay3Name);
+            localStorage.setItem('relay4Name', relay4Name);
+            
+            // Update UI
+            const relay1Label = document.querySelector('#relay1').closest('.toggle-card').querySelector('h3');
+            const relay2Label = document.querySelector('#relay2').closest('.toggle-card').querySelector('h3');
+            const relay3Label = document.querySelector('#relay3').closest('.toggle-card').querySelector('h3');
+            const relay4Label = document.querySelector('#relay4').closest('.toggle-card').querySelector('h3');
+            
+            if (relay1Label) relay1Label.textContent = relay1Name;
+            if (relay2Label) relay2Label.textContent = relay2Name;
+            if (relay3Label) relay3Label.textContent = relay3Name;
+            if (relay4Label) relay4Label.textContent = relay4Name;
+            
+            successAlert('Appliance names saved!');
         });
-
+        
         document.getElementById('gasThresholdForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            localStorage.setItem('gasThreshold', document.getElementById('gasThreshold').value);
-            if (window.successAlert) successAlert('Threshold synchronized!');
-            else alert('Threshold synchronized!');
+            // Implement gas threshold saving logic
+            const gasThreshold = document.getElementById('gasThreshold').value;
+            
+            // Save to localStorage
+            localStorage.setItem('gasThreshold', gasThreshold);
+            
+            successAlert('Gas threshold saved!');
+        });
+        
+        document.getElementById('notificationsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Implement notification settings saving logic
+            const gasAlerts = document.getElementById('gasAlerts').checked;
+            const motionAlerts = document.getElementById('motionAlerts').checked;
+            const relayAlerts = document.getElementById('relayAlerts').checked;
+            
+            // Save to localStorage
+            localStorage.setItem('gasAlerts', gasAlerts);
+            localStorage.setItem('motionAlerts', motionAlerts);
+            localStorage.setItem('relayAlerts', relayAlerts);
+            
+            successAlert('Notification settings saved!');
         });
     </script>
 </body>

@@ -1,5 +1,5 @@
 // Firebase Configuration and Initialization
-const firebaseConfig = {
+const firebaseConfig = window.CONFIG ? window.CONFIG.FIREBASE : {
     apiKey: "AIzaSyBfP6c4VMAzjSyiDXV2a_ifUJ2dgRYnw7U",
     authDomain: "smart-home-iot-e0e92.firebaseapp.com",
     databaseURL: "https://smart-home-iot-e0e92-default-rtdb.firebaseio.com",
@@ -8,10 +8,9 @@ const firebaseConfig = {
     messagingSenderId: "369339639572",
     appId: "1:369339639572:web:dc3e33306b4669677c0401"
 };
+
 // Initialize Firebase
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+firebase.initializeApp(firebaseConfig);
 
 // Firebase Auth and Database References
 const auth = firebase.auth();

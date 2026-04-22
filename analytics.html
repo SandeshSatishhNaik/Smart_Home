@@ -56,11 +56,6 @@
     </style>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 </head>
 <body>
     <div class="loading-overlay" id="loadingOverlay">
@@ -69,25 +64,9 @@
     
     <div class="container">
         <header>
-            <h1>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-                Analytics
-            </h1>
+            <h1>Analytics Dashboard</h1>
             <nav>
                 <ul>
-                    <div class="hardware-status-strip" style="display: flex; gap: 10px; margin-right: 20px; align-items: center; padding: 5px 15px; background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div class="hardware-badge syncing" id="esp32StatusBadge" style="font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; display: flex; align-items: center; gap: 5px;">
-                            <div class="hardware-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #ccc;"></div>
-                            ESP32
-                        </div>
-                        <div class="hardware-badge offline" id="mqttStatusBadge" style="font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; display: flex; align-items: center; gap: 5px;">
-                            <div class="hardware-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #ccc;"></div>
-                            MQTT
-                        </div>
-                    </div>
                     <li><a href="index.html">Dashboard</a></li>
                     <li><a href="analytics.html" class="active">Analytics</a></li>
                     <li><a href="settings.html">Settings</a></li>
@@ -207,9 +186,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="gasChart"></canvas>
-                        </div>
+                        <canvas id="gasChart"></canvas>
                     </div>
                     
                     <div class="chart-card glassmorphism">
@@ -233,9 +210,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="motionChart"></canvas>
-                        </div>
+                        <canvas id="motionChart"></canvas>
                     </div>
                 </div>
             </section>
@@ -246,7 +221,7 @@
                 <div class="stats-grid">
                     <div class="stat-card glassmorphism">
                         <div class="stat-header">
-                            <h3 id="relay1StatName">Light</h3>
+                            <h3>Light</h3>
                             <div class="stat-status" id="lightStatus">OFF</div>
                         </div>
                         <div class="stat-value" id="lightUsage">0 hours</div>
@@ -260,7 +235,7 @@
                     
                     <div class="stat-card glassmorphism">
                         <div class="stat-header">
-                            <h3 id="relay2StatName">Fan</h3>
+                            <h3>Fan</h3>
                             <div class="stat-status" id="fanStatus">OFF</div>
                         </div>
                         <div class="stat-value" id="fanUsage">0 hours</div>
@@ -274,7 +249,7 @@
                     
                     <div class="stat-card glassmorphism">
                         <div class="stat-header">
-                            <h3 id="relay3StatName">TV</h3>
+                            <h3>TV</h3>
                             <div class="stat-status" id="tvStatus">OFF</div>
                         </div>
                         <div class="stat-value" id="tvUsage">0 hours</div>
@@ -288,7 +263,7 @@
                     
                     <div class="stat-card glassmorphism">
                         <div class="stat-header">
-                            <h3 id="relay4StatName">Plug</h3>
+                            <h3>Plug</h3>
                             <div class="stat-status" id="plugStatus">OFF</div>
                         </div>
                         <div class="stat-value" id="plugUsage">0 hours</div>
@@ -307,10 +282,14 @@
     <!-- Alert Container -->
     <div id="alertContainer"></div>
     
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
     <!-- Custom Scripts -->
-    <script src="js/particles.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/firebase.js"></script>
-    <script src="js/mqttClient.js"></script>
     <script src="js/analytics.js"></script>
     <script src="js/alerts.js"></script>
     <script src="js/utils.js"></script>
