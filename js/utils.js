@@ -161,6 +161,96 @@ function deepEqual(obj1, obj2) {
     return true;
 }
 
+// Apply saved accent color from localStorage
+function applyAccentColor() {
+    const savedAccent = localStorage.getItem('accentColor');
+    if (savedAccent) {
+        document.documentElement.style.setProperty('--primary', savedAccent);
+    }
+}
+
+// Update profile info across pages
+function syncProfileUI() {
+    const name = localStorage.getItem('profileName') || 'Home Admin';
+    const seed = localStorage.getItem('profileAvatarSeed') || 'Felix';
+    const customImg = localStorage.getItem('profileCustomImage');
+    
+    const avatarSrc = customImg || `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+
+    // Update header avatar
+    const headerAvatar = document.getElementById('headerProfileAvatar');
+    if (headerAvatar) {
+        headerAvatar.src = avatarSrc;
+    }
+    
+    // Update main profile card avatar (if on settings page)
+    const mainAvatar = document.getElementById('mainProfileImage');
+    if (mainAvatar) {
+        mainAvatar.src = avatarSrc;
+    }
+    
+    // Update header name
+    const headerName = document.getElementById('headerProfileName');
+    if (headerName) {
+        headerName.textContent = name;
+    }
+
+    // Update name on settings page
+    const settingsName = document.getElementById('profileNameDisplay');
+    if (settingsName) settingsName.textContent = name;
+
+    const settingsEmail = document.getElementById('profileEmailDisplay');
+    if (settingsEmail) settingsEmail.textContent = localStorage.getItem('profileEmail') || 'admin@smarthome.local';
+}
+
+// Hardware status tracking (Global shared state)
+window.hardwareStatus = {
+    esp32: {
+        lastMessage: null,
+        status: 'syncing' // syncing, online, offline
+    },
+    relays: [
+        { connected: false, state: null, lastMessage: null }, // relay 1
+        { connected: false, state: null, lastMessage: null }, // relay 2
+        { connected: false, state: null, lastMessage: null }, // relay 3
+        { connected: false, state: null, lastMessage: null }  // relay 4
+    ],
+    sensors: {
+        gas: { active: false, lastMessage: null },
+        motion: { active: false, lastMessage: null }
+    }
+};
+
+// Update hardware status based on timing
+function updateGlobalHardwareStatus() {
+    const now = Date.now();
+    const status = window.hardwareStatus;
+    
+    // Check ESP32 status (15 seconds timeout)
+    if (status.esp32.lastMessage) {
+        const timeDiff = now - status.esp32.lastMessage;
+        if (timeDiff > 15000) {
+            if (status.esp32.status !== 'offline') {
+                status.esp32.status = 'offline';
+                
+                // Immediate cleanup of sensors when offline
+                status.sensors.gas.active = false;
+                status.sensors.motion.active = false;
+                
+                // Dispatch event so specific pages can update their UI
+                window.dispatchEvent(new CustomEvent('hardware-status-changed', { detail: { status: 'offline' } }));
+            }
+        }
+    }
+}
+
+// Start monitoring
+setInterval(updateGlobalHardwareStatus, 5000);
+
+// Run immediately on script load
+applyAccentColor();
+document.addEventListener('DOMContentLoaded', syncProfileUI);
+
 // Export functions
 window.formatDateTime = formatDateTime;
 window.formatTime = formatTime;
@@ -179,3 +269,5 @@ window.formatBytes = formatBytes;
 window.getUrlParameter = getUrlParameter;
 window.deepClone = deepClone;
 window.deepEqual = deepEqual;
+window.applyAccentColor = applyAccentColor;
+window.syncProfileUI = syncProfileUI;

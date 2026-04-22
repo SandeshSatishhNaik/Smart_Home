@@ -1,21 +1,3 @@
-// Hardware status tracking
-const hardwareStatus = {
-    esp32: {
-        lastMessage: null,
-        status: 'syncing' // syncing, online, offline
-    },
-    relays: [
-        { connected: false, state: null, lastMessage: null }, // relay 1
-        { connected: false, state: null, lastMessage: null }, // relay 2
-        { connected: false, state: null, lastMessage: null }, // relay 3
-        { connected: false, state: null, lastMessage: null }  // relay 4
-    ],
-    sensors: {
-        gas: { active: false, lastMessage: null },
-        motion: { active: false, lastMessage: null }
-    }
-};
-
 // Dashboard Logic
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize dashboard
@@ -24,8 +6,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up event listeners
     setupEventListeners();
     
-    // Start hardware status monitoring
-    startHardwareStatusMonitoring();
+    // Start hardware status monitoring - now handled in utils.js
+    // Listen for global status changes
+    window.addEventListener('hardware-status-changed', (e) => {
+        if (e.detail.status === 'offline') {
+            updateESP32StatusUI();
+            
+            // UI Cleanup
+            const gasVal = document.getElementById('gasValue');
+            if (gasVal) gasVal.textContent = '---';
+            const motionVal = document.getElementById('motionValue');
+            if (motionVal) motionVal.textContent = 'Offline';
+            
+            updateDashboardSummary();
+        }
+    });
+
+    window.addEventListener('voice-assistant-state-changed', updateDashboardSummary);
 });
 
 // Initialize dashboard
@@ -37,6 +34,8 @@ function initializeDashboard() {
     
     // Load saved appliance names
     loadApplianceNames();
+
+    updateDashboardSummary();
     
     // No periodic updates - all updates must come from MQTT messages
     // This ensures the dashboard only shows real data from ESP32
@@ -94,6 +93,10 @@ function updateRelayState(relayNumber, isOn) {
         // Save state to localStorage for persistence
         localStorage.setItem(`relay${relayNumber}State`, isOn);
     }
+
+    updateRelayCardState(relayNumber, isOn);
+
+    updateDashboardSummary();
 }
 
 // Load user settings
@@ -116,33 +119,7 @@ function loadSettings() {
     // Load other settings as needed
 }
 
-// Load appliance names from localStorage
-function loadApplianceNames() {
-    const relay1Name = localStorage.getItem('relay1Name');
-    const relay2Name = localStorage.getItem('relay2Name');
-    const relay3Name = localStorage.getItem('relay3Name');
-    const relay4Name = localStorage.getItem('relay4Name');
-    
-    if (relay1Name) {
-        const relay1Label = document.querySelector('#relay1').closest('.toggle-card').querySelector('h3');
-        if (relay1Label) relay1Label.textContent = relay1Name;
-    }
-    
-    if (relay2Name) {
-        const relay2Label = document.querySelector('#relay2').closest('.toggle-card').querySelector('h3');
-        if (relay2Label) relay2Label.textContent = relay2Name;
-    }
-    
-    if (relay3Name) {
-        const relay3Label = document.querySelector('#relay3').closest('.toggle-card').querySelector('h3');
-        if (relay3Label) relay3Label.textContent = relay3Name;
-    }
-    
-    if (relay4Name) {
-        const relay4Label = document.querySelector('#relay4').closest('.toggle-card').querySelector('h3');
-        if (relay4Label) relay4Label.textContent = relay4Name;
-    }
-}
+
 
 // Set up periodic updates
 function setupPeriodicUpdates() {
@@ -163,95 +140,30 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-// Start hardware status monitoring
-function startHardwareStatusMonitoring() {
-    // Update hardware status every 5 seconds
-    setInterval(updateHardwareStatus, 5000);
-}
 
-// Update hardware status based on last message timestamps
-function updateHardwareStatus() {
-    const now = Date.now();
-    
-    // Check ESP32 status (15 seconds timeout)
-    if (hardwareStatus.esp32.lastMessage) {
-        const timeDiff = now - hardwareStatus.esp32.lastMessage;
-        if (timeDiff > 15000) {
-            // More than 15 seconds since last message
-            if (hardwareStatus.esp32.status !== 'offline') {
-                hardwareStatus.esp32.status = 'offline';
-                updateESP32StatusUI();
-            }
-        } else {
-            // Recent message, device is online
-            if (hardwareStatus.esp32.status !== 'online') {
-                hardwareStatus.esp32.status = 'online';
-                updateESP32StatusUI();
-            }
-        }
-    }
-    
-    // Check relay connections (15 seconds timeout)
-    for (let i = 0; i < 4; i++) {
-        if (hardwareStatus.relays[i].lastMessage) {
-            const timeDiff = now - hardwareStatus.relays[i].lastMessage;
-            if (timeDiff > 15000) {
-                // More than 15 seconds since last message
-                if (hardwareStatus.relays[i].connected) {
-                    hardwareStatus.relays[i].connected = false;
-                    updateRelayStatusUI(i + 1);
-                }
-            }
-        }
-    }
-    
-    // Check sensor activity (30 seconds timeout)
-    if (hardwareStatus.sensors.gas.lastMessage) {
-        const timeDiff = now - hardwareStatus.sensors.gas.lastMessage;
-        if (timeDiff > 30000) {
-            // More than 30 seconds since last message
-            if (hardwareStatus.sensors.gas.active) {
-                hardwareStatus.sensors.gas.active = false;
-                updateGasSensorStatusUI();
-            }
-        }
-    }
-    
-    if (hardwareStatus.sensors.motion.lastMessage) {
-        const timeDiff = now - hardwareStatus.sensors.motion.lastMessage;
-        if (timeDiff > 30000) {
-            // More than 30 seconds since last message
-            if (hardwareStatus.sensors.motion.active) {
-                hardwareStatus.sensors.motion.active = false;
-                updateMotionSensorStatusUI();
-            }
-        }
-    }
-}
 
 // Update ESP32 status in UI
 function updateESP32StatusUI() {
-    const statusElement = document.getElementById('esp32Status');
-    const indicatorElement = document.getElementById('esp32Indicator');
-    const textElement = statusElement?.querySelector('.status-text');
+    const badgeElement = document.getElementById('esp32StatusBadge');
     
-    if (!statusElement || !indicatorElement || !textElement) return;
+    if (!badgeElement) return;
+    
+    badgeElement.classList.remove('online', 'offline', 'syncing');
     
     switch (hardwareStatus.esp32.status) {
         case 'online':
-            indicatorElement.className = 'status-indicator online';
-            textElement.textContent = 'Online';
+            badgeElement.classList.add('online');
             break;
         case 'offline':
-            indicatorElement.className = 'status-indicator offline';
-            textElement.textContent = 'Offline';
+            badgeElement.classList.add('offline');
             break;
         case 'syncing':
         default:
-            indicatorElement.className = 'status-indicator syncing';
-            textElement.textContent = 'Syncing...';
+            badgeElement.classList.add('syncing');
             break;
     }
+
+    updateDashboardSummary();
 }
 
 // Update relay status in UI
@@ -293,39 +205,115 @@ function updateRelayStatusUI(relayNumber) {
             stateText.textContent = 'Unknown';
         }
     }
+
+    updateDashboardSummary();
 }
 
 // Update gas sensor status in UI
 function updateGasSensorStatusUI() {
-    const statusElement = document.getElementById('gasSensorStatus');
-    const indicatorElement = document.getElementById('gasSensorIndicator');
-    const textElement = statusElement?.querySelector('.status-text');
+    const badgeElement = document.getElementById('gasStatusBadge');
     
-    if (!statusElement || !indicatorElement || !textElement) return;
+    if (!badgeElement) return;
     
     if (hardwareStatus.sensors.gas.active) {
-        indicatorElement.className = 'status-indicator green';
-        textElement.textContent = 'Active';
+        badgeElement.textContent = 'Active';
+        badgeElement.className = 'sensor-status-badge safe';
     } else {
-        indicatorElement.className = 'status-indicator grey';
-        textElement.textContent = 'No Data';
+        badgeElement.textContent = 'No Data';
+        badgeElement.className = 'sensor-status-badge warning';
     }
+
+    updateDashboardSummary();
 }
 
 // Update motion sensor status in UI
 function updateMotionSensorStatusUI() {
-    const statusElement = document.getElementById('motionSensorStatus');
-    const indicatorElement = document.getElementById('motionSensorIndicator');
-    const textElement = statusElement?.querySelector('.status-text');
+    const badgeElement = document.getElementById('motionStatusBadge');
     
-    if (!statusElement || !indicatorElement || !textElement) return;
+    if (!badgeElement) return;
     
     if (hardwareStatus.sensors.motion.active) {
-        indicatorElement.className = 'status-indicator green';
-        textElement.textContent = 'Active';
+        badgeElement.textContent = 'Active';
+        badgeElement.className = 'sensor-status-badge safe';
     } else {
-        indicatorElement.className = 'status-indicator grey';
-        textElement.textContent = 'No Data';
+        badgeElement.textContent = 'No Data';
+        badgeElement.className = 'sensor-status-badge warning';
+    }
+
+    updateDashboardSummary();
+}
+
+function updateRelayCardState(relayNumber, isOn) {
+    const relayElement = document.getElementById(`relay${relayNumber}`);
+    const card = relayElement?.closest('.toggle-card');
+
+    if (!card) {
+        return;
+    }
+
+    card.classList.toggle('active', Boolean(isOn));
+    
+    // Also update the state text
+    const stateText = document.getElementById(`relay${relayNumber}StateText`);
+    if (stateText) {
+        stateText.textContent = isOn ? 'ON' : 'OFF';
+    }
+}
+
+function updateDashboardSummary() {
+    const connectionEl = document.getElementById('summaryConnection');
+    const relaysEl = document.getElementById('summaryRelays');
+    const voiceEl = document.getElementById('summaryVoice');
+
+    if (connectionEl) {
+        let connectionText = 'Checking...';
+        let connectionTone = 'warn';
+
+        if (hardwareStatus.esp32.status === 'online') {
+            connectionText = 'ESP32 online';
+            connectionTone = 'good';
+        } else if (hardwareStatus.esp32.status === 'offline') {
+            connectionText = 'ESP32 offline';
+            connectionTone = 'bad';
+        }
+
+        connectionEl.textContent = connectionText;
+        const connectionMetric = connectionEl.closest('.summary-metric');
+        if (connectionMetric) {
+            connectionMetric.dataset.tone = connectionTone;
+        }
+    }
+
+    if (relaysEl) {
+        const activeRelays = hardwareStatus.relays.filter((relay) => relay.state === true).length;
+        relaysEl.textContent = `${activeRelays}/4 active`;
+        const relayMetric = relaysEl.closest('.summary-metric');
+        if (relayMetric) {
+            relayMetric.dataset.tone = activeRelays > 0 ? 'good' : 'warn';
+        }
+    }
+
+    if (voiceEl) {
+        const voiceAssistant = window.voiceAssistant;
+        const voiceReady = Boolean(voiceAssistant?.isAssistantEnabled);
+        const voiceReplyOn = Boolean(voiceAssistant?.isVoiceReplyEnabled);
+        const voiceName = (voiceAssistant?.browserVoiceName || '').trim();
+        const talkMode = voiceAssistant?.talkMode === 'hold' ? 'Hold to talk' : 'Tap to talk';
+
+        if (!voiceReady) {
+            voiceEl.textContent = 'Disabled';
+        } else if (!voiceReplyOn) {
+            voiceEl.textContent = 'Muted';
+        } else if (voiceName) {
+            voiceEl.textContent = `${voiceName} · ${talkMode}`;
+        } else {
+            voiceEl.textContent = talkMode;
+        }
+
+        const voiceMetric = voiceEl.closest('.summary-metric');
+        if (voiceMetric) {
+            voiceMetric.dataset.tone = voiceReady && voiceReplyOn ? 'good' : 'warn';
+        }
     }
 }
 
@@ -337,7 +325,7 @@ function loadApplianceNames() {
     const relay4Name = localStorage.getItem('relay4Name');
     
     if (relay1Name) {
-        const relay1Label = document.querySelector('#relay1').closest('.toggle-card').querySelector('h3');
+        const relay1Label = document.querySelector('#relay1')?.closest('.toggle-card')?.querySelector('.toggle-name');
         if (relay1Label) relay1Label.textContent = relay1Name;
         // Also update hardware status label
         const relay1HardwareLabel = document.getElementById('relay1HardwareName');
@@ -345,7 +333,7 @@ function loadApplianceNames() {
     }
     
     if (relay2Name) {
-        const relay2Label = document.querySelector('#relay2').closest('.toggle-card').querySelector('h3');
+        const relay2Label = document.querySelector('#relay2')?.closest('.toggle-card')?.querySelector('.toggle-name');
         if (relay2Label) relay2Label.textContent = relay2Name;
         // Also update hardware status label
         const relay2HardwareLabel = document.getElementById('relay2HardwareName');
@@ -353,7 +341,7 @@ function loadApplianceNames() {
     }
     
     if (relay3Name) {
-        const relay3Label = document.querySelector('#relay3').closest('.toggle-card').querySelector('h3');
+        const relay3Label = document.querySelector('#relay3')?.closest('.toggle-card')?.querySelector('.toggle-name');
         if (relay3Label) relay3Label.textContent = relay3Name;
         // Also update hardware status label
         const relay3HardwareLabel = document.getElementById('relay3HardwareName');
@@ -361,7 +349,7 @@ function loadApplianceNames() {
     }
     
     if (relay4Name) {
-        const relay4Label = document.querySelector('#relay4').closest('.toggle-card').querySelector('h3');
+        const relay4Label = document.querySelector('#relay4')?.closest('.toggle-card')?.querySelector('.toggle-name');
         if (relay4Label) relay4Label.textContent = relay4Name;
         // Also update hardware status label
         const relay4HardwareLabel = document.getElementById('relay4HardwareName');
@@ -372,7 +360,6 @@ function loadApplianceNames() {
 // Export any functions that might be needed by other modules
 window.toggleRelay = toggleRelay;
 window.updateRelayState = updateRelayState;
-window.hardwareStatus = hardwareStatus;
 window.updateESP32StatusUI = updateESP32StatusUI;
 window.updateRelayStatusUI = updateRelayStatusUI;
 window.updateGasSensorStatusUI = updateGasSensorStatusUI;

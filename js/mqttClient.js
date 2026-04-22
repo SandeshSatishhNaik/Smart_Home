@@ -1,8 +1,10 @@
 // MQTT Client Configuration
-const MQTT_HOST = process.env.VITE_MQTT_HOST || "4937ec2b1a4d43d188b384d4972d66db.s1.eu.hivemq.cloud";
-const MQTT_PORT = process.env.VITE_MQTT_PORT || 8884;
-const MQTT_USERNAME = process.env.VITE_MQTT_USERNAME || "Demon_sandy";
-const MQTT_PASSWORD = process.env.VITE_MQTT_PASSWORD || "Demon_sandy9";// MQTT Topics
+const MQTT_HOST = "4937ec2b1a4d43d188b384d4972d66db.s1.eu.hivemq.cloud";
+const MQTT_PORT = 8884;
+const MQTT_USERNAME = "Demon_sandy";
+const MQTT_PASSWORD = "Demon_sandy9";
+
+// MQTT Topics
 const TOPICS = {
     RELAY_SET: [
         'home/relay1/set',
@@ -17,7 +19,8 @@ const TOPICS = {
         'home/relay4/state'
     ],
     SENSOR_GAS: 'home/sensor/gas',
-    SENSOR_MOTION: 'home/sensor/motion'
+    SENSOR_MOTION: 'home/sensor/motion',
+    DEVICE_STATUS: 'home/status'
 };
 
 // MQTT Connection Options
@@ -28,7 +31,8 @@ const mqttOptions = {
     keepalive: 60,
     reconnectPeriod: 1000,
     protocol: 'wss',
-    port: MQTT_PORT
+    port: MQTT_PORT,
+    clean: true // Ensure clean session to properly receive retained messages
 };
 
 // Global MQTT client variable
@@ -41,20 +45,20 @@ function connectMQTT() {
     mqttClient = mqtt.connect(brokerUrl, mqttOptions);
     
     mqttClient.on('connect', () => {
-        console.log('Connected to MQTT broker');
+        // Connected to MQTT broker
         updateConnectionStatus('Connected', 'online');
         
-        // Subscribe to all topics
-        console.log('Subscribing to topics:', TOPICS);
+        // Subscribe to all topics with QoS 1 to ensure message delivery
+        // Subscribing to topics
         Object.values(TOPICS).forEach(topic => {
             if (Array.isArray(topic)) {
                 topic.forEach(t => {
-                    console.log('Subscribing to array topic:', t);
-                    mqttClient.subscribe(t);
+                    // Subscribing to array topic
+                    mqttClient.subscribe(t, { qos: 1 });
                 });
             } else {
-                console.log('Subscribing to single topic:', topic);
-                mqttClient.subscribe(topic);
+                // Subscribing to single topic
+                mqttClient.subscribe(topic, { qos: 1 });
             }
         });
         
@@ -62,19 +66,19 @@ function connectMQTT() {
     });
     
     mqttClient.on('error', (error) => {
-        console.error('MQTT connection error:', error);
+        // MQTT connection error
         updateConnectionStatus('Error', 'offline');
         // Error event logging REMOVED - Only IoT data should be logged
         errorAlert('MQTT connection error: ' + error.message);
     });
     
     mqttClient.on('close', () => {
-        console.log('MQTT connection closed');
+        // MQTT connection closed
         updateConnectionStatus('Disconnected', 'offline');
     });
     
     mqttClient.on('reconnect', () => {
-        console.log('MQTT reconnecting...');
+        // MQTT reconnecting...
         updateConnectionStatus('Reconnecting...', 'connecting');
     });
     
@@ -82,36 +86,58 @@ function connectMQTT() {
     
     // Debug: Log all subscriptions
     mqttClient.on('subscribe', (topic, granted) => {
-        console.log('Subscribed to topic:', topic, granted);
+        // Subscribed to topic
     });
 }
 
 // Handle incoming MQTT messages
-function handleMessage(topic, message) {
-    console.log('Received MQTT message - Topic:', topic, 'Payload:', message.toString());
+function handleMessage(topic, message, packet) {
+    // Received MQTT message
     // Ignore /set topics completely - these are commands, not state updates
     if (topic.includes('/set')) {
-        console.log('Ignoring /set topic:', topic);
+        // Ignoring /set topic
         return;
     }
     
     try {
         const payload = message.toString();
         
+        // 1. Handle Raw Status Topic (LWT)
+        if (topic === TOPICS.DEVICE_STATUS) {
+            const status = payload.toUpperCase(); // "ONLINE" or "OFFLINE"
+            if (typeof window.hardwareStatus !== 'undefined') {
+                window.hardwareStatus.esp32.status = (status === 'ONLINE') ? 'online' : 'offline';
+                window.hardwareStatus.esp32.lastMessage = Date.now();
+                window.updateESP32StatusUI?.();
+                
+                // If offline, disable sensors
+                if (status === 'OFFLINE') {
+                    window.hardwareStatus.sensors.gas.active = false;
+                    window.hardwareStatus.sensors.motion.active = false;
+                    window.updateGasSensorStatusUI?.();
+                    window.updateMotionSensorStatusUI?.();
+                }
+            }
+            return;
+        }
+
         // Safely parse JSON - ignore non-JSON payloads
         let data;
         try {
             data = JSON.parse(payload);
         } catch (parseError) {
-            console.warn('Invalid JSON payload ignored:', topic, payload);
-            // Invalid payload logging REMOVED - Only valid IoT data should be logged
             return;
         }
         
-        console.log('MQTT Message received:', topic, data);
+        // MQTT Message received
+        // Dispatch global event for all listeners
+        window.dispatchEvent(new CustomEvent('mqtt-message-received', {
+            detail: { topic, data, timestamp: Date.now() }
+        }));
         
-        // Update ESP32 status - any valid message means device is online
-        if (typeof window.hardwareStatus !== 'undefined') {
+        // Update ESP32 status - only real-time (non-retained) messages prove device is online
+        const isRetained = packet && packet.retain;
+        if (typeof window.hardwareStatus !== 'undefined' && !isRetained) {
             window.hardwareStatus.esp32.lastMessage = Date.now();
             if (window.hardwareStatus.esp32.status !== 'online') {
                 window.hardwareStatus.esp32.status = 'online';
@@ -124,6 +150,15 @@ function handleMessage(topic, message) {
             const relayIndex = TOPICS.RELAY_STATE.indexOf(topic) + 1;
             updateRelayState(relayIndex, data.state === 'ON');
             relayStateAlert(relayIndex, data.state === 'ON');
+
+            // Notify listeners (e.g. voice assistant) after confirmed relay state update.
+            window.dispatchEvent(new CustomEvent('relay-state-confirmed', {
+                detail: {
+                    relayNumber: relayIndex,
+                    isOn: data.state === 'ON',
+                    timestamp: Date.now()
+                }
+            }));
             
             // Update relay hardware status
             if (typeof window.hardwareStatus !== 'undefined') {
@@ -134,12 +169,15 @@ function handleMessage(topic, message) {
             }
         }
         
-        // Handle gas sensor data
+        // Handle gas sensor data (Advanced Leak Detection)
         if (topic === TOPICS.SENSOR_GAS) {
-            console.log('Processing gas sensor data:', data);
             updateGasLevel(data.value);
             
-            // Update gas sensor hardware status
+            // Priority: Trigger emergency if hardware confirms 'leak' is true
+            if (data.leak === true) {
+                gasDangerAlert(data.value);
+            }
+            
             if (typeof window.hardwareStatus !== 'undefined') {
                 window.hardwareStatus.sensors.gas.active = true;
                 window.hardwareStatus.sensors.gas.lastMessage = Date.now();
@@ -175,7 +213,7 @@ function handleMessage(topic, message) {
             logRelayState(`relay${relayIndex}`, data.state);
         }
     } catch (error) {
-        console.error('Error processing MQTT message:', error);
+        // Error processing MQTT message
         // Error logging REMOVED - Only valid IoT data should be logged
     }
 }
@@ -184,10 +222,10 @@ function handleMessage(topic, message) {
 function publishMessage(topic, message) {
     if (mqttClient && mqttClient.connected) {
         mqttClient.publish(topic, JSON.stringify(message), { qos: 1 });
-        console.log('Published to MQTT:', topic, message);
+        // Published to MQTT
         // System event logging REMOVED - Only IoT data should be logged
     } else {
-        console.warn('MQTT client not connected. Could not publish:', topic, message);
+        // MQTT client not connected
         // Publish failure logging REMOVED - Only IoT data should be logged
     }
 }
@@ -245,12 +283,19 @@ function updateMotionDetection(detected) {
 
 // Update connection status in UI
 function updateConnectionStatus(status, indicatorClass) {
-    const statusElement = document.getElementById('connectionStatus');
-    const indicatorElement = document.getElementById('statusIndicator');
+    const badgeElement = document.getElementById('mqttStatusBadge');
     
-    if (statusElement && indicatorElement) {
-        statusElement.textContent = status;
-        indicatorElement.className = 'status-indicator ' + indicatorClass;
+    if (badgeElement) {
+        // Remove existing status classes
+        badgeElement.classList.remove('online', 'offline', 'connecting');
+        
+        // Add new class based on indicatorClass
+        if (indicatorClass === 'online' || indicatorClass === 'offline' || indicatorClass === 'connecting') {
+            badgeElement.classList.add(indicatorClass);
+        } else {
+            // Default to offline if unknown
+            badgeElement.classList.add('offline');
+        }
     }
 }
 

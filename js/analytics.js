@@ -14,6 +14,9 @@ function initializeAnalytics() {
     // Load initial data
     loadData();
     
+    // Load custom names
+    loadApplianceNames();
+    
     // Set up auto-refresh
     setupAutoRefresh();
     
@@ -33,6 +36,44 @@ function initializeAnalytics() {
     document.getElementById('exportMotionData')?.addEventListener('click', exportMotionData);
     document.getElementById('exportAllData')?.addEventListener('click', exportAllData);
     document.getElementById('printReport')?.addEventListener('click', printReport);
+
+    // Handle hardware status changes
+    window.addEventListener('hardware-status-changed', (e) => {
+        if (e.detail.status === 'offline') {
+            updateESP32StatusUI();
+            
+            // Clear current status cards
+            const gasEl = document.getElementById('currentGasLevel');
+            if (gasEl) gasEl.textContent = '---';
+            const motionEl = document.getElementById('motionStatus');
+            if (motionEl) motionEl.textContent = 'Offline';
+        }
+    });
+
+    // Initial UI update for badges
+    updateESP32StatusUI();
+}
+
+// Update ESP32 status in UI
+function updateESP32StatusUI() {
+    const badgeElement = document.getElementById('esp32StatusBadge');
+    if (badgeElement) {
+        badgeElement.classList.remove('online', 'offline', 'syncing');
+        badgeElement.classList.add(hardwareStatus.esp32.status);
+    }
+}
+
+// Load appliance names from local storage
+function loadApplianceNames() {
+    for (let i = 1; i <= 4; i++) {
+        const name = localStorage.getItem(`relay${i}Name`);
+        if (name) {
+            const element = document.getElementById(`relay${i}StatName`);
+            if (element) {
+                element.textContent = name;
+            }
+        }
+    }
 }
 
 // Set up charts
@@ -80,7 +121,6 @@ function setupCharts() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    max: 100,
                     grid: {
                         color: 'rgba(255, 255, 255, 0.1)',
                         drawBorder: false
@@ -88,12 +128,12 @@ function setupCharts() {
                     ticks: {
                         color: '#D1D5DB',
                         callback: function(value) {
-                            return value + '%';
+                            return value + ' ppm';
                         }
                     },
                     title: {
                         display: true,
-                        text: 'Gas Level (%)',
+                        text: 'Gas Level (ppm)',
                         color: '#9CA3AF',
                         font: {
                             size: 12
@@ -139,7 +179,7 @@ function setupCharts() {
                     displayColors: false,
                     callbacks: {
                         label: function(context) {
-                            return `${context.dataset.label}: ${context.parsed.y}%`;
+                            return `${context.dataset.label}: ${context.parsed.y} ppm`;
                         }
                     }
                 }
@@ -365,80 +405,107 @@ function processData(logs) {
 // Process structured data for charts
 function processDataStructured(gasLogs, motionLogs, relayLogs) {
     console.log('Processing structured data:', { gasLogs, motionLogs, relayLogs });
-    // Prepare data arrays
+    
     const gasData = [];
     const gasLabels = [];
-    const motionData = [];
-    const motionLabels = [];
+    const motionData = Array(24).fill(0);
+    const motionLabels = Array.from({length: 24}, (_, i) => `${i}:00`);
     const relayUsage = { 1: 0, 2: 0, 3: 0, 4: 0 };
-    let currentGasLevel = 'No data';
-    let motionStatus = 'No data';
-    let activeDevices = 0;
     
-    // Process gas sensor data
-    if (gasLogs && Object.keys(gasLogs).length > 0) {
-        console.log('Processing gas logs:', gasLogs);
-        Object.entries(gasLogs).forEach(([timestamp, data]) => {
-            console.log('Gas data entry:', { timestamp, data });
+    // Accurate state tracking
+    const currentRelayStates = { 1: false, 2: false, 3: false, 4: false };
+    const lastToggleTime = { 1: null, 2: null, 3: null, 4: null };
+    
+    let currentGasLevel = '0';
+    let motionStatus = 'No Motion';
+    
+    // 1. Process gas sensor data (Chronological order)
+    if (gasLogs) {
+        const sortedGas = Object.entries(gasLogs).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+        if (sortedGas.length > 0) {
+            const lastEntry = sortedGas[sortedGas.length - 1];
+            currentGasLevel = lastEntry[1].value;
+        }
+        sortedGas.forEach(([timestamp, data]) => {
             gasData.push(data.value);
-            gasLabels.push(new Date(parseInt(timestamp)).toLocaleTimeString());
-            currentGasLevel = data.value;
+            gasLabels.push(new Date(parseInt(timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         });
-    } else {
-        console.log('No gas logs found');
     }
     
-    // Process motion sensor data
-    if (motionLogs && Object.keys(motionLogs).length > 0) {
-        Object.entries(motionLogs).forEach(([timestamp, data]) => {
+    // 2. Process motion sensor data
+    if (motionLogs) {
+        const sortedMotion = Object.entries(motionLogs).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+        if (sortedMotion.length > 0) {
+            const lastEntry = sortedMotion[sortedMotion.length - 1];
+            motionStatus = lastEntry[1].motion === 1 ? 'Motion Detected' : 'No Motion';
+        }
+        sortedMotion.forEach(([timestamp, data]) => {
             if (data.motion === 1) {
                 const date = new Date(parseInt(timestamp));
                 const hour = date.getHours();
-                if (!motionData[hour]) motionData[hour] = 0;
                 motionData[hour]++;
-                motionLabels[hour] = `${hour}:00`;
-                motionStatus = 'Motion Detected';
-            } else {
-                motionStatus = 'No Motion';
             }
         });
     }
     
-    // Process relay state data
-    if (relayLogs && Object.keys(relayLogs).length > 0) {
-        Object.entries(relayLogs).forEach(([timestamp, data]) => {
+    // 3. Process relay state data & calculate ACTUAL usage
+    if (relayLogs) {
+        const sortedRelays = Object.entries(relayLogs).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+        
+        sortedRelays.forEach(([timestamp, data]) => {
             const relayNumber = parseInt(data.relay.replace('relay', ''));
+            const time = parseInt(timestamp);
+            
             if (relayNumber >= 1 && relayNumber <= 4) {
-                // For simplicity, we'll count each relay state change as 1 hour of usage
-                // In a real system, you'd calculate actual duration between state changes
-                relayUsage[relayNumber] += 1;
+                const newState = data.state === 'ON';
                 
-                // Count active devices
-                if (data.state === 'ON') {
-                    activeDevices++;
+                // If turning OFF, calculate duration since it was turned ON
+                if (!newState && currentRelayStates[relayNumber] && lastToggleTime[relayNumber]) {
+                    const durationMs = time - lastToggleTime[relayNumber];
+                    const durationHrs = durationMs / (1000 * 60 * 60);
+                    relayUsage[relayNumber] += parseFloat(durationHrs.toFixed(2));
                 }
+                
+                // Update current state for next calculation
+                currentRelayStates[relayNumber] = newState;
+                lastToggleTime[relayNumber] = time;
             }
         });
     }
-    
-    // Calculate total usage
-    const totalUsage = Object.values(relayUsage).reduce((sum, usage) => sum + usage, 0);
+
+    // Active devices is the count of relays currently 'ON' at the end of the logs
+    const activeDevices = Object.values(currentRelayStates).filter(state => state === true).length;
+    const totalUsage = Object.values(relayUsage).reduce((sum, usage) => sum + usage, 0).toFixed(1);
     
     // Update summary cards
     updateSummaryCards(currentGasLevel, motionStatus, activeDevices, totalUsage);
     
-    // Update charts with limited data
+    // Update charts
     updateGasChart(gasLabels.slice(-24), gasData.slice(-24));
-    // Limit motion data to last 24 hours (0-23)
-    const limitedMotionLabels = [];
-    const limitedMotionData = [];
-    for (let i = 0; i < 24; i++) {
-        limitedMotionLabels.push(`${i}:00`);
-        limitedMotionData.push(motionData[i] || 0);
-    }
-    updateMotionChart(limitedMotionLabels, limitedMotionData);
+    updateMotionChart(motionLabels, motionData);
     updateRelayStats(relayUsage);
+    
+    // Update last updated timestamp
+    const lastUpdated = document.getElementById('lastUpdated');
+    if (lastUpdated) lastUpdated.textContent = new Date().toLocaleTimeString();
 }
+
+// Real-time MQTT listener for Analytics summary cards
+// This ensures that even though charts are historical, the top cards are LIVE
+document.addEventListener('mqtt-message-received', (e) => {
+    const { topic, data } = e.detail;
+    
+    if (topic === 'home/sensor/gas') {
+        const el = document.getElementById('currentGasLevel');
+        if (el) el.textContent = data.value;
+    } else if (topic === 'home/sensor/motion') {
+        const el = document.getElementById('motionStatus');
+        if (el) el.textContent = data.motion === 1 ? 'Motion Detected' : 'No Motion';
+    } else if (topic.includes('home/relay') && topic.includes('/state')) {
+        // Active devices might change, let's refresh logs for full accuracy
+        // or just wait for auto-refresh
+    }
+});
 
 // Update gas chart
 function updateGasChart(labels, data) {
@@ -543,7 +610,7 @@ function exportGasData() {
         return;
     }
     
-    let csvContent = 'Time,Gas Level (%)\n';
+    let csvContent = 'Time,Gas Level (ppm)\n';
     
     for (let i = 0; i < labels.length; i++) {
         csvContent += `${labels[i]},${data[i]}\n`;
@@ -590,7 +657,7 @@ function exportAllData() {
             
             // Add gas data
             for (let i = 0; i < gasLabels.length; i++) {
-                csvContent += `Gas Sensor,${gasLabels[i]},${gasData[i]}%\n`;
+                csvContent += `Gas Sensor,${gasLabels[i]},${gasData[i]} ppm\n`;
             }
             
             // Add motion data

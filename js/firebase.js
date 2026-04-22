@@ -1,15 +1,17 @@
 // Firebase Configuration and Initialization
 const firebaseConfig = {
-    apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyBfP6c4VMAzjSyiDXV2a_ifUJ2dgRYnw7U",
-    authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "smart-home-iot-e0e92.firebaseapp.com",
-    databaseURL: process.env.VITE_FIREBASE_DATABASE_URL || "https://smart-home-iot-e0e92-default-rtdb.firebaseio.com",
-    projectId: process.env.VITE_FIREBASE_PROJECT_ID || "smart-home-iot-e0e92",
-    storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "smart-home-iot-e0e92.firebasestorage.app",
-    messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "369339639572",
-    appId: process.env.VITE_FIREBASE_APP_ID || "1:369339639572:web:dc3e33306b4669677c0401"
+    apiKey: "AIzaSyBfP6c4VMAzjSyiDXV2a_ifUJ2dgRYnw7U",
+    authDomain: "smart-home-iot-e0e92.firebaseapp.com",
+    databaseURL: "https://smart-home-iot-e0e92-default-rtdb.firebaseio.com",
+    projectId: "smart-home-iot-e0e92",
+    storageBucket: "smart-home-iot-e0e92.firebasestorage.app",
+    messagingSenderId: "369339639572",
+    appId: "1:369339639572:web:dc3e33306b4669677c0401"
 };
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 
 // Firebase Auth and Database References
 const auth = firebase.auth();

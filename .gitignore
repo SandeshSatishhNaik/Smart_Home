@@ -1,24 +1,33 @@
-# Environment variables
-.env
-.env.local
-.env.production
-
-# Logs
-*.log
-
-# Temporary files
-*.tmp
-*.temp
-
-# IDE files
+# IDE Folders
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS generated files
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment / Secrets
+.env
+config.h
+credentials.h
+secrets.json
+
+# OS files
 .DS_Store
 Thumbs.db
 
-# Netlify files
-.netlify/
+# Build artifacts
+dist/
+build/
+out/
+bin/
+*.exe
+*.o
+*.obj
+*.bin
+*.elf
+*.map
